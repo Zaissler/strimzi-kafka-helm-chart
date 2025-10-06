@@ -1,0 +1,74 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ .Values.kafka.clusterName | default "kraft-cluster" }}
+  namespace: {{ .Values.namespace | default "kafka" }}
+spec:
+  kafka:
+    version: "{{ .Values.kafka.version | default "4.0.0" }}"
+    config:
+      process.roles: "{{ .Values.kafka.config.processRoles | default "broker,controller" }}"
+      node.id: {{ .Values.kafka.config.nodeId | default 0 }}
+      controller.quorum.voters: "{{ .Values.kafka.config.controllerQuorumVoters | default "" }}"
+      controller.listener.names: "{{ .Values.kafka.config.controllerListenerNames | default "CONTROLLER" }}"
+      inter.broker.protocol.version: "{{ .Values.kafka.config.interBrokerProtocolVersion | default "4.0" }}"
+    listeners:
+{{- if .Values.kafka.listeners.enableNodePort | default false }}
+      - name: externalnp
+        port: {{ .Values.kafka.listeners.externalnp.port | default 31090 }}
+        type: nodeport
+        tls: {{ .Values.kafka.listeners.externalnp.tls | default false }}
+      - name: externaltls
+        port: {{ .Values.kafka.listeners.externaltls.port | default 31091 }}
+        type: nodeport
+        tls: {{ .Values.kafka.listeners.externaltls.tls | default true }}
+{{- end }}
+      - name: plain
+        port: {{ .Values.kafka.listeners.plain.port | default 9092 }}
+        type: internal
+        tls: {{ .Values.kafka.listeners.plain.tls | default false }}
+      - name: tls
+        port: {{ .Values.kafka.listeners.tls.port | default 9093 }}
+        type: internal
+        tls: {{ .Values.kafka.listeners.tls.tls | default true }}
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+
+{{- if .Values.ingress.enabled | default false }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.kafka.clusterName | default "kraft-cluster" }}-ingress
+  namespace: {{ .Values.namespace | default "kafka" }}
+  annotations:
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+spec:
+  rules:
+{{- range .Values.ingress.hosts }}
+  - host: {{ .host }}
+    http:
+      paths:
+{{- range .paths }}
+      - path: {{ .path }}
+        pathType: {{ .pathType }}
+        backend:
+          service:
+            name: {{ $.Values.kafka.clusterName | default "kraft-cluster" }}-kafka-brokers
+            port:
+              number: {{ $.Values.kafka.listeners.plain.port | default 9092 }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.ingress.tls }}
+  tls:
+{{- range .Values.ingress.tls }}
+  - hosts:
+{{- range .hosts }}
+    - {{ . }}
+{{- end }}
+    secretName: {{ .secretName }}
+{{- end }}
+{{- end }}
+{{- end }}

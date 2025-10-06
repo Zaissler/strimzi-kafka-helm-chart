@@ -1,0 +1,48 @@
+namespace: kafka
+
+kafka:
+  clusterName: kraft-cluster
+  version: "4.0.0"
+  config:
+    processRoles: "broker,controller"
+    nodeId: 0
+    controllerQuorumVoters: "0@kraft-cluster-kafka-0.kraft-cluster-kafka-brokers.kafka.svc:9093,1@kraft-cluster-kafka-1.kraft-cluster-kafka-brokers.kafka.svc:9093,2@kraft-cluster-kafka-2.kraft-cluster-kafka-brokers.kafka.svc:9093"
+    controllerListenerNames: "CONTROLLER"
+    interBrokerProtocolVersion: "4.0"
+  listeners:
+    enableNodePort: false         # Управление использованием nodePort
+    externalnp:
+      port: 31090
+      tls: false
+    externaltls:
+      port: 31091
+      tls: true
+    plain:
+      port: 9092
+      tls: false
+    tls:
+      port: 9093
+      tls: true
+
+nodepool:
+  name: default
+  roles:
+    - broker
+    - controller
+  replicas: 1
+  storage:
+    type: persistent-claim
+    size: 5Gi
+
+ingress:
+  enabled: false            # Управление использованием Ingress
+  annotations: {}
+  hosts:
+    - host: kafka.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: kafka-tls-secret
+      hosts:
+        - kafka.example.com
