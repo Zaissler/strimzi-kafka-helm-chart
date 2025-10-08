@@ -1,4 +1,4 @@
-namespace: kafka
+namespace: kek
 
 kafka:
   clusterName: kraft-cluster
@@ -29,10 +29,10 @@ nodepool:
   roles:
     - broker
     - controller
-  replicas: 1
+  replicas: 3
   storage:
     type: persistent-claim
-    size: 5Gi
+    size: 1Gi
 
 ingress:
   enabled: false            # Управление использованием Ingress

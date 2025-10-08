@@ -7,11 +7,7 @@ spec:
   kafka:
     version: "{{ .Values.kafka.version | default "4.0.0" }}"
     config:
-      process.roles: "{{ .Values.kafka.config.processRoles | default "broker,controller" }}"
-      node.id: {{ .Values.kafka.config.nodeId | default 0 }}
-      controller.quorum.voters: "{{ .Values.kafka.config.controllerQuorumVoters | default "" }}"
-      controller.listener.names: "{{ .Values.kafka.config.controllerListenerNames | default "CONTROLLER" }}"
-      inter.broker.protocol.version: "{{ .Values.kafka.config.interBrokerProtocolVersion | default "4.0" }}"
+{{ toYaml .Values.kafka.config | indent 6 }}
     listeners:
 {{- if .Values.kafka.listeners.enableNodePort | default false }}
       - name: externalnp
