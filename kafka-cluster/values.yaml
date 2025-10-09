@@ -1,16 +1,17 @@
-namespace: kek
+namespace: dev
 
 kafka:
   clusterName: kraft-cluster
   version: "4.0.0"
   config:
+    auto.create.topics.enable: false
     processRoles: "broker,controller"
     nodeId: 0
     controllerQuorumVoters: "0@kraft-cluster-kafka-0.kraft-cluster-kafka-brokers.kafka.svc:9093,1@kraft-cluster-kafka-1.kraft-cluster-kafka-brokers.kafka.svc:9093,2@kraft-cluster-kafka-2.kraft-cluster-kafka-brokers.kafka.svc:9093"
     controllerListenerNames: "CONTROLLER"
     interBrokerProtocolVersion: "4.0"
   listeners:
-    enableNodePort: false         # Управление использованием nodePort
+    enableNodePort: true         # Управление использованием nodePort
     externalnp:
       port: 31090
       tls: false
@@ -29,7 +30,7 @@ nodepool:
   roles:
     - broker
     - controller
-  replicas: 3
+  replicas: 1
   storage:
     type: persistent-claim
     size: 1Gi
