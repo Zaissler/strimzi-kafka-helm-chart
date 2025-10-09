@@ -1,6 +1,18 @@
 apiVersion: v2
-name: kafka-cluster
-description: A Helm chart for Kubernetes
+name: strimzi-kafka-helm-chart
+description: Helm chart for deploying Kafka (KRaft) cluster using Strimzi Operator
 type: application
 version: 0.1.0
 appVersion: "0.48.0"
+home: https://github.com/Zaissler/strimzi-kafka-helm-chart
+sources:
+  - https://github.com/Zaissler/strimzi-kafka-helm-chart
+keywords:
+  - kafka
+  - strimzi
+  - kraft
+  - kubernetes
+  - helm
+maintainers:
+  - name: Zaissler
+    email: zaissler@gmail.com

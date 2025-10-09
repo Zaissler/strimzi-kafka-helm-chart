@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Helm
+charts/
+*.tgz
+*.lock
+
+# Kubernetes
+*.kubeconfig
+
+# Logs
+logs/
+*.log
+
+# Editors
+.idea/
+.vscode/

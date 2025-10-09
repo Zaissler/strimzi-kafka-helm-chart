@@ -1,72 +1,82 @@
-# Kafka Helm Chart
+# Strimzi Kafka Helm Chart
 
-Helm chart для развертывания Kafka кластера на базе Strimzi Kafka Operator версии 0.48.0.
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Helm Chart](https://img.shields.io/badge/Helm-Chart-blue)](https://helm.sh)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
 
-# Инструкция по развертыванию Strimzi Kafka с KRaft и доступом через NodePort
+[Read in English](README.en.md)
+
+Helm-чарт для развертывания кластера Kafka (KRaft) с помощью Strimzi Kafka Operator (0.48.0).
+
+## Возможности
+- Поддержка `KRaft` и `KafkaNodePool`
+- Опциональные `NodePort` и `Ingress`
+- Управление параметрами через `values.yaml`
+- Подсказки установки в `templates/NOTES.txt`
 
 ## Требования
-- Kubernetes кластер с доступом к `kubectl`
-- Strimzi Kafka Operator версии 0.48.0
-- Longhorn CSI установлен и настроен (в качестве StorageClass)
+- Kubernetes 1.25+
+- Helm 3.x
+- Установленный Strimzi Kafka Operator 0.48.0
 
----
-
-## 1. Установка
+Установка оператора (пример):
 ```bash
 helm repo add strimzi https://strimzi.io/charts/
 helm repo update
-helm install strimzi-operator strimzi/strimzi-kafka-operator -n strimzi-system --create-namespace
+helm install strimzi-operator strimzi/strimzi-kafka-operator \
+  -n strimzi-system --create-namespace \
+  -f strimzi-values.yaml
 ```
 
-## Особенности
-
-- Поддержка Kafka KRaft кластера с nodepool
-- Опциональный nodePort и Ingress
-- Управляемые параметры через values.yaml
-- Удобный NOTES.txt с инструкциями по подключению и проверке
-
-## Требования
-
-- Kubernetes 1.25+
-- Strimzi Kafka Operator 0.48.0 установлен и настроен
-- Helm 3.x
-
-## Установка
-
-Установите чарт со значениями по умолчанию:
-
+## Установка чарта
+Установить чарт со значениями по умолчанию:
 ```bash
-helm install my-kafka ./kafka-chart
+helm install my-kafka ./kafka-cluster -n kafka --create-namespace
 ```
 
-
-Для включения Ingress:
-
+Включить Ingress:
 ```bash
-helm install my-kafka ./kafka-chart --set ingress.enabled=true --set ingress.hosts.host=kafka.example.com
+helm install my-kafka ./kafka-cluster -n kafka \
+  --set ingress.enabled=true \
+  --set ingress.hosts[0].host=kafka.example.com \
+  --set ingress.hosts[0].paths[0].path=/ \
+  --set ingress.hosts[0].paths[0].pathType=Prefix
 ```
 
-Для включения nodePort:
-
+Включить NodePort:
 ```bash
-helm install my-kafka ./kafka-chart --set kafka.listeners.enableNodePort=true
+helm install my-kafka ./kafka-cluster -n kafka \
+  --set kafka.listeners.enableNodePort=true
 ```
 
+Рендер без установки:
+```bash
+helm template my-kafka ./kafka-cluster -f kafka-cluster/values.yaml
+```
 
 ## Проверка статуса
-
 ```bash
 kubectl get pods -n kafka -l strimzi.io/cluster=kraft-cluster
 kubectl get svc -n kafka kraft-cluster-kafka-brokers
 ```
 
 ## Конфигурация
+- Все параметры описаны в `kafka-cluster/values.yaml` и справочнике: `kafka-cluster/VALUES_REFERENCE.md`.
+- Ключевые значения:
+  - `namespace` — namespace Kubernetes
+  - `kafka.clusterName` — имя Kafka кластера
+  - `kafka.version` — версия Kafka
+  - `kafka.listeners.enableNodePort` — включение NodePort
+  - `ingress.enabled` — включение Ingress
 
-Все параметры доступны в `values.yaml`. Основные:
+## Вклад и шаблоны
+- См. `CONTRIBUTING.md` для правил участия и тестирования.
+- Шаблоны issues и PR: каталог `.github/`.
+- Кодекс поведения: `CODE_OF_CONDUCT.md`.
 
-- `namespace` — namespace Kubernetes
-- `kafka.clusterName` — имя Kafka кластера
-- `kafka.version` — версия Kafka
-- `kafka.listeners.enableNodePort` — включение nodePort
-- `ingress.enabled` — включение Ingress и др.
+## Безопасность
+Сообщения об уязвимостях — по инструкции в `SECURITY.md` (не создавайте публичные issue).
+
+## Лицензия
+Проект распространяется по лицензии Apache-2.0. См. `LICENSE`.
 
