@@ -1,0 +1,19 @@
+title: Strimzi Kafka Helm Chart
+description: Deploy Kafka (KRaft) with Strimzi via Helm
+theme: minima
+
+# Set English as the default language for Pages
+lang: en
+
+# Minima navigation links
+header_pages:
+  - index.md
+
+# GitHub metadata (optional)
+plugins:
+  - jekyll-seo-tag
+
+# Build config
+markdown: kramdown
+kramdown:
+  input: GFM

@@ -1,0 +1,35 @@
+##########################################################################
+KAFKA CHART NOTES
+##########################################################################
+
+1. Kafka Cluster Name: {{ .Values.kafka.clusterName }}
+2. Namespace: {{ .Values.namespace }}
+
+3. NodePort Listener:
+{{- if .Values.kafka.listeners.enableNodePort }}
+  NodePort listeners are enabled.
+  External listeners are available on ports:
+  - externalnp: {{ .Values.kafka.listeners.externalnp.port }}
+  - externaltls: {{ .Values.kafka.listeners.externaltls.port }}
+{{- else }}
+  NodePort listeners are disabled.
+{{- end }}
+
+4. Ingress:
+{{- if .Values.ingress.enabled }}
+  Ingress is enabled.
+  Access Kafka via the following hosts:
+{{- range .Values.ingress.hosts }}
+    - {{ .host }}
+{{- end }}
+{{- else }}
+  Ingress is disabled.
+{{- end }}
+
+5. To check the Kafka pods status:
+   kubectl get pods -n {{ .Values.namespace }} -l strimzi.io/cluster={{ .Values.kafka.clusterName }}
+
+6. To get Kafka brokers service:
+   kubectl get svc -n {{ .Values.namespace }} {{ .Values.kafka.clusterName }}-kafka-brokers
+
+##########################################################################
