@@ -1,13 +1,174 @@
+{{- $deploymentMode := include "kafka-cluster.deploymentMode" . }}
+{{- $clusterName := include "kafka-cluster.clusterName" . }}
+
+{{- if or (eq $deploymentMode "dual-role") (eq $deploymentMode "single-node") }}
+{{/*
+  Dual-role или Single-node режим: один NodePool с обеими ролями
+*/}}
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
   name: {{ .Values.nodepool.name }}
   namespace: {{ .Values.namespace }}
   labels:
-    strimzi.io/cluster: {{ .Values.kafka.clusterName }}
+    strimzi.io/cluster: {{ $clusterName }}
+    {{- include "kafka-cluster.labels" . | nindent 4 }}
 spec:
-  roles: {{ toYaml .Values.nodepool.roles | nindent 4 }}
+  roles:
+  {{- range .Values.nodepool.roles }}
+    - {{ . }}
+  {{- end }}
   replicas: {{ .Values.nodepool.replicas }}
   storage:
-    type: {{ .Values.nodepool.storage.type }}
-    size: {{ .Values.nodepool.storage.size }}
+  {{- if eq .Values.nodepool.storage.type "jbod" }}
+    type: jbod
+    volumes:
+    {{- if .Values.nodepool.storage.jbodVolumes }}
+    {{- range .Values.nodepool.storage.jbodVolumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        {{- if eq .type "persistent-claim" }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+        {{- end }}
+        kraftMetadata: {{ .kraftMetadata | default "shared" }}
+    {{- end }}
+    {{- else }}
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepool.storage.size }}
+        deleteClaim: {{ .Values.nodepool.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+    {{- end }}
+  {{- else if eq .Values.nodepool.storage.type "persistent-claim" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepool.storage.size }}
+        deleteClaim: {{ .Values.nodepool.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+  {{- else if eq .Values.nodepool.storage.type "ephemeral" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: ephemeral
+        kraftMetadata: shared
+  {{- end }}
+---
+{{- end }}
+
+{{- if eq $deploymentMode "separated-roles" }}
+{{/*
+  Separated-roles режим: отдельные NodePool для controller и broker
+*/}}
+
+{{- if .Values.nodepools.controller.enabled }}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ .Values.nodepools.controller.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    strimzi.io/cluster: {{ $clusterName }}
+    {{- include "kafka-cluster.labels" . | nindent 4 }}
+    role: controller
+spec:
+  roles:
+  {{- range .Values.nodepools.controller.roles }}
+    - {{ . }}
+  {{- end }}
+  replicas: {{ .Values.nodepools.controller.replicas }}
+  storage:
+  {{- if eq .Values.nodepools.controller.storage.type "jbod" }}
+    type: jbod
+    volumes:
+    {{- if .Values.nodepools.controller.storage.jbodVolumes }}
+    {{- range .Values.nodepools.controller.storage.jbodVolumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        {{- if eq .type "persistent-claim" }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+        {{- end }}
+        kraftMetadata: {{ .kraftMetadata | default "shared" }}
+    {{- end }}
+    {{- else }}
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepools.controller.storage.size }}
+        deleteClaim: {{ .Values.nodepools.controller.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+    {{- end }}
+  {{- else if eq .Values.nodepools.controller.storage.type "persistent-claim" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepools.controller.storage.size }}
+        deleteClaim: {{ .Values.nodepools.controller.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+  {{- else if eq .Values.nodepools.controller.storage.type "ephemeral" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: ephemeral
+        kraftMetadata: shared
+  {{- end }}
+---
+{{- end }}
+
+{{- if .Values.nodepools.broker.enabled }}
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ .Values.nodepools.broker.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    strimzi.io/cluster: {{ $clusterName }}
+    {{- include "kafka-cluster.labels" . | nindent 4 }}
+    role: broker
+spec:
+  roles:
+  {{- range .Values.nodepools.broker.roles }}
+    - {{ . }}
+  {{- end }}
+  replicas: {{ .Values.nodepools.broker.replicas }}
+  storage:
+  {{- if eq .Values.nodepools.broker.storage.type "jbod" }}
+    type: jbod
+    volumes:
+    {{- if .Values.nodepools.broker.storage.jbodVolumes }}
+    {{- range .Values.nodepools.broker.storage.jbodVolumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        {{- if eq .type "persistent-claim" }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+        {{- end }}
+        kraftMetadata: {{ .kraftMetadata | default "shared" }}
+    {{- end }}
+    {{- else }}
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepools.broker.storage.size }}
+        deleteClaim: {{ .Values.nodepools.broker.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+    {{- end }}
+  {{- else if eq .Values.nodepools.broker.storage.type "persistent-claim" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.nodepools.broker.storage.size }}
+        deleteClaim: {{ .Values.nodepools.broker.storage.deleteClaim | default false }}
+        kraftMetadata: shared
+  {{- else if eq .Values.nodepools.broker.storage.type "ephemeral" }}
+    type: jbod
+    volumes:
+      - id: 0
+        type: ephemeral
+        kraftMetadata: shared
+  {{- end }}
+{{- end }}
+{{- end }}

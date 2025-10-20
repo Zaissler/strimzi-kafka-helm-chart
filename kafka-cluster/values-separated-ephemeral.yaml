@@ -1,0 +1,62 @@
+# Separated Roles with Ephemeral Storage
+# Отдельные пулы для Broker и Controller с ephemeral storage
+# Рекомендуется для тестовых окружений
+
+namespace: test
+
+deploymentMode: separated-roles
+
+kafka:
+  clusterName: kafka-test
+  version: "4.0.0"
+  metadataVersion: "4.0-IV0"
+  
+  replication:
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    defaultReplicationFactor: 3
+    minInsyncReplicas: 2
+  
+  config:
+    auto.create.topics.enable: true
+    log.retention.hours: 24
+  
+  listeners:
+    enableNodePort: false
+    plain:
+      port: 9092
+      tls: false
+    tls:
+      port: 9093
+      tls: true
+
+# Для separated-roles используем nodepools
+nodepools:
+  controller:
+    enabled: true
+    name: controller
+    replicas: 3
+    roles:
+      - controller
+    storage:
+      type: ephemeral
+  
+  broker:
+    enabled: true
+    name: broker
+    replicas: 3
+    roles:
+      - broker
+    storage:
+      type: ephemeral
+
+entityOperator:
+  enabled: true
+  topicOperator:
+    enabled: true
+  userOperator:
+    enabled: true
+
+ingress:
+  enabled: false
