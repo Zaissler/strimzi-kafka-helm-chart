@@ -58,14 +58,49 @@ kubectl get pods -n kafka -l strimzi.io/cluster=kraft-cluster
 kubectl get svc -n kafka kraft-cluster-kafka-brokers
 ```
 
-## Configuration
-- All parameters are described in `kafka-cluster/values.yaml` and the reference: `kafka-cluster/VALUES_REFERENCE.en.md`.
-- Key values:
-  - `namespace` — Kubernetes namespace
-  - `kafka.clusterName` — cluster name
-  - `kafka.version` — Kafka version
-  - `kafka.listeners.enableNodePort` — enable NodePort
-  - `ingress.enabled` — enable Ingress
+## ⚙️ Configuration
+
+### Ready-to-use Profiles
+The chart includes ready configurations for different scenarios:
+
+- `kafka-cluster/values.yaml` — base configuration (Dual-Role)
+- `kafka-cluster/values-single-node.yaml` — for local development
+- `kafka-cluster/values-dual-role.yaml` — for staging environments
+- `kafka-cluster/values-separated-persistent.yaml` — for production with persistent storage
+- `kafka-cluster/values-separated-ephemeral.yaml` — for testing with ephemeral storage
+
+### Key Parameters
+
+| Parameter | Description | Default Value |
+|-----------|-------------|---------------|
+| `deploymentMode` | Deployment mode | `dual-role` |
+| `namespace` | Kubernetes namespace | `dev` |
+| `kafka.clusterName` | Kafka cluster name | `kraft-cluster` |
+| `kafka.version` | Kafka version | `4.0.0` |
+| `kafka.replication.*` | Replication factors | Automatic |
+| `kafka.listeners.enableNodePort` | Enable NodePort | `true` |
+| `nodepool.replicas` | Number of nodes | `3` |
+| `nodepool.storage.type` | Storage type | `persistent-claim` |
+| `nodepool.storage.size` | Storage size | `1Gi` |
+| `ingress.enabled` | Enable Ingress | `false` |
+
+### Full Documentation
+- Detailed description of all parameters: `kafka-cluster/VALUES_REFERENCE.en.md`
+- Russian version: `kafka-cluster/VALUES_REFERENCE.md`
+- Migration guide: `MIGRATION.md` ([Русская версия](MIGRATION.ru.md))
+- Changelog: `CHANGELOG.md` ([Русская версия](CHANGELOG.ru.md))
+
+## 📚 Documentation
+
+### In English
+- **Parameters Reference**: [VALUES_REFERENCE.en.md](kafka-cluster/VALUES_REFERENCE.en.md)
+- **Migration Guide**: [MIGRATION.en.md](MIGRATION.en.md)
+- **Changelog**: [CHANGELOG.en.md](CHANGELOG.en.md)
+
+### На русском языке
+- **Справочник параметров**: [VALUES_REFERENCE.md](kafka-cluster/VALUES_REFERENCE.md)
+- **Руководство по миграции**: [MIGRATION.md](MIGRATION.md)
+- **История изменений**: [CHANGELOG.md](CHANGELOG.md)
 
 ## Contributing and templates
 - See `CONTRIBUTING.md` for contribution rules and testing.
@@ -80,4 +115,4 @@ Apache-2.0. See `LICENSE`.
 
 ---
 
-Read this in Russian: `README.md`
+Read this in Russian: [README.md](README.md)

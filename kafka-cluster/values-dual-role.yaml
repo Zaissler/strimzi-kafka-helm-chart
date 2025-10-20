@@ -1,0 +1,58 @@
+# Dual-Role Configuration
+# Broker и Controller на одних нодах
+# Рекомендуется для средних кластеров и staging окружений
+
+namespace: dev
+
+deploymentMode: dual-role
+
+kafka:
+  clusterName: kafka-dual-role
+  version: "4.0.0"
+  metadataVersion: "4.0-IV0"
+  
+  replication:
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    defaultReplicationFactor: 3
+    minInsyncReplicas: 2
+  
+  config:
+    auto.create.topics.enable: true
+  
+  listeners:
+    enableNodePort: true
+    externalnp:
+      port: 31090
+      tls: false
+    externaltls:
+      port: 31091
+      tls: true
+    plain:
+      port: 9092
+      tls: false
+    tls:
+      port: 9093
+      tls: true
+
+nodepool:
+  name: dual-role
+  roles:
+    - broker
+    - controller
+  replicas: 3
+  storage:
+    type: persistent-claim
+    size: 100Gi
+    deleteClaim: false
+
+entityOperator:
+  enabled: true
+  topicOperator:
+    enabled: true
+  userOperator:
+    enabled: true
+
+ingress:
+  enabled: false
