@@ -1,16 +1,36 @@
-namespace: kek
+# Namespace для развертывания
+namespace: dev
 
+# Режим развертывания: "dual-role", "separated-roles", "single-node"
+# dual-role: broker и controller на одних нодах (по умолчанию)
+# separated-roles: отдельные пулы для broker и controller
+# single-node: одна нода для разработки/тестирования
+deploymentMode: dual-role
+
+# Kafka конфигурация
 kafka:
   clusterName: kraft-cluster
   version: "4.0.0"
+  metadataVersion: "4.0-IV0"  # Metadata version for KRaft
+  
+  # Конфигурация репликации (автоматически адаптируется под deploymentMode)
+  replication:
+    # Для single-node все значения будут = 1
+    # Для dual-role и separated-roles используются указанные значения
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    defaultReplicationFactor: 3
+    minInsyncReplicas: 2
+  
+  # Дополнительная Kafka конфигурация
   config:
-    processRoles: "broker,controller"
-    nodeId: 0
-    controllerQuorumVoters: "0@kraft-cluster-kafka-0.kraft-cluster-kafka-brokers.kafka.svc:9093,1@kraft-cluster-kafka-1.kraft-cluster-kafka-brokers.kafka.svc:9093,2@kraft-cluster-kafka-2.kraft-cluster-kafka-brokers.kafka.svc:9093"
-    controllerListenerNames: "CONTROLLER"
-    interBrokerProtocolVersion: "4.0"
+    auto.create.topics.enable: true
+    # Дополнительные параметры можно добавить здесь
+  
+  # Listeners конфигурация
   listeners:
-    enableNodePort: false         # Управление использованием nodePort
+    enableNodePort: true  # Управление использованием nodePort
     externalnp:
       port: 31090
       tls: false
@@ -24,8 +44,11 @@ kafka:
       port: 9093
       tls: true
 
+# Конфигурация Node Pools
+# Для dual-role и single-node используется nodepool (старая конфигурация - обратная совместимость)
+# Для separated-roles используется nodepools (множественные пулы)
 nodepool:
-  name: default
+  name: dual-role
   roles:
     - broker
     - controller
@@ -33,9 +56,51 @@ nodepool:
   storage:
     type: persistent-claim
     size: 1Gi
+    deleteClaim: false
 
+# Расширенная конфигурация для separated-roles режима
+# Если deploymentMode = "separated-roles", используется эта секция
+nodepools:
+  controller:
+    enabled: true
+    name: controller
+    replicas: 3
+    roles:
+      - controller
+    storage:
+      type: persistent-claim  # persistent-claim, ephemeral, jbod
+      size: 100Gi
+      deleteClaim: false
+      # Для JBOD конфигурации:
+      # jbodVolumes:
+      #   - id: 0
+      #     type: persistent-claim
+      #     size: 100Gi
+      #     deleteClaim: false
+      #     kraftMetadata: shared
+  
+  broker:
+    enabled: true
+    name: broker
+    replicas: 3
+    roles:
+      - broker
+    storage:
+      type: persistent-claim
+      size: 100Gi
+      deleteClaim: false
+
+# EntityOperator конфигурация (для управления Topic и User)
+entityOperator:
+  enabled: true
+  topicOperator:
+    enabled: true
+  userOperator:
+    enabled: true
+
+# Ingress конфигурация
 ingress:
-  enabled: false            # Управление использованием Ingress
+  enabled: false
   annotations: {}
   hosts:
     - host: kafka.example.com

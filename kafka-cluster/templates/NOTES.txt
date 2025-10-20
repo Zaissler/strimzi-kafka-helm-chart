@@ -1,35 +1,111 @@
+{{- $deploymentMode := include "kafka-cluster.deploymentMode" . }}
+{{- $clusterName := include "kafka-cluster.clusterName" . }}
+{{- $replicationFactor := include "kafka-cluster.replicationFactor" . }}
 ##########################################################################
-KAFKA CHART NOTES
+█▀▀ ▀█▀ █▀█ █ █▀▄▀█ ▀█ █   █▄▀ ▄▀█ █▀▀ █▄▀ ▄▀█
+▄█   █  █▀▄ █ █ ▀ █ █▄ █▄▄ █ █ █▀█ █▀  █ █ █▀█
 ##########################################################################
 
-1. Kafka Cluster Name: {{ .Values.kafka.clusterName }}
-2. Namespace: {{ .Values.namespace }}
+Kafka Cluster Successfully Deployed!
 
-3. NodePort Listener:
+📋 DEPLOYMENT INFORMATION
+────────────────────────────────────────────────────────────────
+
+  🏷️  Cluster Name:        {{ $clusterName }}
+  📦 Namespace:           {{ .Values.namespace }}
+  🔧 Deployment Mode:     {{ $deploymentMode }}
+  📊 Kafka Version:       {{ .Values.kafka.version }}
+  🔄 Replication Factor:  {{ $replicationFactor }}
+
+{{- if eq $deploymentMode "single-node" }}
+  ⚠️  MODE: Single-Node (Development)
+  • One node with both roles (broker + controller)
+  • Replication factors set to 1
+  • NOT recommended for production!
+{{- else if eq $deploymentMode "dual-role" }}
+  ✓ MODE: Dual-Role (Staging/Medium Clusters)
+  • {{ .Values.nodepool.replicas }} nodes with both roles (broker + controller)
+  • Replication factors: {{ $replicationFactor }}
+  • Storage: {{ .Values.nodepool.storage.type }} ({{ .Values.nodepool.storage.size }})
+{{- else if eq $deploymentMode "separated-roles" }}
+  ✓ MODE: Separated-Roles (Production)
+  {{- if .Values.nodepools.controller.enabled }}
+  • Controller nodes: {{ .Values.nodepools.controller.replicas }} replicas
+  {{- end }}
+  {{- if .Values.nodepools.broker.enabled }}
+  • Broker nodes: {{ .Values.nodepools.broker.replicas }} replicas
+  {{- end }}
+  • Replication factors: {{ $replicationFactor }}
+  • Controller storage: {{ .Values.nodepools.controller.storage.type }}
+  • Broker storage: {{ .Values.nodepools.broker.storage.type }}
+{{- end }}
+
+────────────────────────────────────────────────────────────────
+
+🌐 LISTENERS
+────────────────────────────────────────────────────────────────
+
 {{- if .Values.kafka.listeners.enableNodePort }}
-  NodePort listeners are enabled.
-  External listeners are available on ports:
-  - externalnp: {{ .Values.kafka.listeners.externalnp.port }}
-  - externaltls: {{ .Values.kafka.listeners.externaltls.port }}
+  ✅ NodePort listeners enabled:
+     • External (plain): {{ .Values.kafka.listeners.externalnp.port }}
+     • External (TLS):   {{ .Values.kafka.listeners.externaltls.port }}
 {{- else }}
-  NodePort listeners are disabled.
+  ⚠️  NodePort listeners disabled
 {{- end }}
 
-4. Ingress:
+  Internal listeners:
+     • Plain: {{ .Values.kafka.listeners.plain.port }}
+     • TLS:   {{ .Values.kafka.listeners.tls.port }}
+
 {{- if .Values.ingress.enabled }}
-  Ingress is enabled.
-  Access Kafka via the following hosts:
+
+🌍 INGRESS
+────────────────────────────────────────────────────────────────
+
+  ✅ Ingress enabled
+  Access via:
 {{- range .Values.ingress.hosts }}
-    - {{ .host }}
+     • {{ .host }}
 {{- end }}
+{{- end }}
+
+────────────────────────────────────────────────────────────────
+
+📝 USEFUL COMMANDS
+────────────────────────────────────────────────────────────────
+
+  Check pod status:
+    kubectl get pods -n {{ .Values.namespace }} -l strimzi.io/cluster={{ $clusterName }}
+
+  Check Kafka resource:
+    kubectl get kafka -n {{ .Values.namespace }} {{ $clusterName }}
+
+  Check NodePools:
+    kubectl get kafkanodepool -n {{ .Values.namespace }}
+
+  Get Kafka services:
+    kubectl get svc -n {{ .Values.namespace }} | grep {{ $clusterName }}
+
+  View Kafka broker logs:
+    kubectl logs -n {{ .Values.namespace }} {{ $clusterName }}-dual-role-0 -f
+
+  Connect to pod:
+    kubectl exec -it -n {{ .Values.namespace }} {{ $clusterName }}-dual-role-0 -- bash
+
+────────────────────────────────────────────────────────────────
+
+💡 ADDITIONAL INFO
+────────────────────────────────────────────────────────────────
+
+{{- if .Values.entityOperator.enabled }}
+  ✅ EntityOperator enabled
+     • Topic Operator: {{ .Values.entityOperator.topicOperator.enabled }}
+     • User Operator:  {{ .Values.entityOperator.userOperator.enabled }}
 {{- else }}
-  Ingress is disabled.
+  ⚠️  EntityOperator disabled
 {{- end }}
 
-5. To check the Kafka pods status:
-   kubectl get pods -n {{ .Values.namespace }} -l strimzi.io/cluster={{ .Values.kafka.clusterName }}
-
-6. To get Kafka brokers service:
-   kubectl get svc -n {{ .Values.namespace }} {{ .Values.kafka.clusterName }}-kafka-brokers
+  📚 Documentation: See VALUES_REFERENCE.md for full documentation
+  🔧 Examples: See values-*.yaml files for different scenarios
 
 ##########################################################################

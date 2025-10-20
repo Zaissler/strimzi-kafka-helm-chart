@@ -1,35 +1,63 @@
+{{- $deploymentMode := include "kafka-cluster.deploymentMode" . }}
+{{- $clusterName := include "kafka-cluster.clusterName" . }}
+{{- $replicationFactor := include "kafka-cluster.replicationFactor" . }}
+{{- $minInsyncReplicas := include "kafka-cluster.minInsyncReplicas" . }}
+---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
-  name: {{ .Values.kafka.clusterName | default "kraft-cluster" }}
-  namespace: {{ .Values.namespace | default "kafka" }}
+  name: {{ $clusterName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "kafka-cluster.labels" . | nindent 4 }}
+    deploymentMode: {{ $deploymentMode }}
 spec:
   kafka:
-    version: "{{ .Values.kafka.version | default "4.0.0" }}"
+    version: {{ .Values.kafka.version | quote }}
+    {{- if .Values.kafka.metadataVersion }}
+    metadataVersion: {{ .Values.kafka.metadataVersion | quote }}
+    {{- end }}
     config:
-{{ toYaml .Values.kafka.config | indent 6 }}
+      # Автоматически вычисляемые значения репликации
+      offsets.topic.replication.factor: {{ $replicationFactor }}
+      transaction.state.log.replication.factor: {{ $replicationFactor }}
+      transaction.state.log.min.isr: {{ $minInsyncReplicas }}
+      default.replication.factor: {{ $replicationFactor }}
+      min.insync.replicas: {{ $minInsyncReplicas }}
+      {{- if .Values.kafka.config }}
+      # Пользовательские параметры
+      {{- range $key, $value := .Values.kafka.config }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+      {{- end }}
     listeners:
-{{- if .Values.kafka.listeners.enableNodePort | default false }}
+{{- if .Values.kafka.listeners.enableNodePort }}
       - name: externalnp
-        port: {{ .Values.kafka.listeners.externalnp.port | default 31090 }}
+        port: {{ .Values.kafka.listeners.externalnp.port }}
         type: nodeport
-        tls: {{ .Values.kafka.listeners.externalnp.tls | default false }}
+        tls: {{ .Values.kafka.listeners.externalnp.tls }}
       - name: externaltls
-        port: {{ .Values.kafka.listeners.externaltls.port | default 31091 }}
+        port: {{ .Values.kafka.listeners.externaltls.port }}
         type: nodeport
-        tls: {{ .Values.kafka.listeners.externaltls.tls | default true }}
+        tls: {{ .Values.kafka.listeners.externaltls.tls }}
 {{- end }}
       - name: plain
-        port: {{ .Values.kafka.listeners.plain.port | default 9092 }}
+        port: {{ .Values.kafka.listeners.plain.port }}
         type: internal
-        tls: {{ .Values.kafka.listeners.plain.tls | default false }}
+        tls: {{ .Values.kafka.listeners.plain.tls }}
       - name: tls
-        port: {{ .Values.kafka.listeners.tls.port | default 9093 }}
+        port: {{ .Values.kafka.listeners.tls.port }}
         type: internal
-        tls: {{ .Values.kafka.listeners.tls.tls | default true }}
+        tls: {{ .Values.kafka.listeners.tls.tls }}
+{{- if and .Values.entityOperator .Values.entityOperator.enabled }}
   entityOperator:
+  {{- if .Values.entityOperator.topicOperator.enabled }}
     topicOperator: {}
+  {{- end }}
+  {{- if .Values.entityOperator.userOperator.enabled }}
     userOperator: {}
+  {{- end }}
+{{- end }}
 
 {{- if .Values.ingress.enabled | default false }}
 ---

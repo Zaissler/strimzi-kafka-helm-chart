@@ -1,0 +1,74 @@
+# Separated Roles with Persistent Storage
+# Отдельные пулы для Broker и Controller с persistent storage
+# Рекомендуется для production окружений
+
+namespace: prod
+
+deploymentMode: separated-roles
+
+kafka:
+  clusterName: kafka-prod
+  version: "4.0.0"
+  metadataVersion: "4.0-IV0"
+  
+  replication:
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    defaultReplicationFactor: 3
+    minInsyncReplicas: 2
+  
+  config:
+    auto.create.topics.enable: false
+    log.retention.hours: 168
+    log.segment.bytes: 1073741824
+    compression.type: producer
+  
+  listeners:
+    enableNodePort: true
+    externalnp:
+      port: 31090
+      tls: false
+    externaltls:
+      port: 31091
+      tls: true
+    plain:
+      port: 9092
+      tls: false
+    tls:
+      port: 9093
+      tls: true
+
+# Для separated-roles используем nodepools
+nodepools:
+  controller:
+    enabled: true
+    name: controller
+    replicas: 3
+    roles:
+      - controller
+    storage:
+      type: persistent-claim
+      size: 100Gi
+      deleteClaim: false
+  
+  broker:
+    enabled: true
+    name: broker
+    replicas: 3
+    roles:
+      - broker
+    storage:
+      type: persistent-claim
+      size: 200Gi
+      deleteClaim: false
+
+entityOperator:
+  enabled: true
+  topicOperator:
+    enabled: true
+  userOperator:
+    enabled: true
+
+ingress:
+  enabled: false
