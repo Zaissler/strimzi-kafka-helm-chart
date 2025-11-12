@@ -52,6 +52,28 @@ The chart supports three deployment modes, configured via the `deploymentMode` p
 
 ---
 
+## JMX Monitoring
+
+### `jmx.enabled`
+- **Type**: bool
+- **Default**: `false`
+- **Description**: Enable JMX Prometheus Exporter for Kafka metrics export
+
+When JMX is enabled, a ConfigMap is created with metric export rules, including:
+- Broker metrics (throughput, latency, partition stats)
+- Consumer/producer group metrics
+- Topic metrics
+- JVM metrics (memory, GC, threads)
+- Operational metrics
+
+Usage example:
+```yaml
+jmx:
+  enabled: true
+```
+
+---
+
 ## Kafka Configuration
 
 ### `kafka.clusterName`
@@ -272,6 +294,13 @@ helm install kafka-test ./kafka-cluster \
   -n test --create-namespace
 ```
 
+### Kafka with JMX Monitoring
+```bash
+helm install kafka-monitoring ./kafka-cluster \
+  -f values-jmx.yaml \
+  -n monitoring --create-namespace
+```
+
 ### Override individual parameters
 ```bash
 # Change deployment mode
@@ -293,6 +322,11 @@ helm install kafka ./kafka-cluster \
 helm install kafka ./kafka-cluster \
   --set ingress.enabled=true \
   --set ingress.hosts[0].host=kafka.example.com \
+  -n dev --create-namespace
+
+# Enable JMX monitoring
+helm install kafka ./kafka-cluster \
+  --set jmx.enabled=true \
   -n dev --create-namespace
 ```
 

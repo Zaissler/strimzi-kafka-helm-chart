@@ -9,6 +9,7 @@ A Helm chart to deploy a Kafka (KRaft) cluster using Strimzi Kafka Operator (0.4
 ## Features
 - Support for `KRaft` and `KafkaNodePool`
 - Optional `NodePort` and `Ingress`
+- JMX monitoring via Prometheus Exporter
 - Configuration via `values.yaml`
 - Install hints in `templates/NOTES.txt`
 
@@ -68,6 +69,7 @@ The chart includes ready configurations for different scenarios:
 - `kafka-cluster/values-dual-role.yaml` — for staging environments
 - `kafka-cluster/values-separated-persistent.yaml` — for production with persistent storage
 - `kafka-cluster/values-separated-ephemeral.yaml` — for testing with ephemeral storage
+- `kafka-cluster/values-jmx.yaml` — with JMX monitoring enabled
 
 ### Key Parameters
 
@@ -75,6 +77,7 @@ The chart includes ready configurations for different scenarios:
 |-----------|-------------|---------------|
 | `deploymentMode` | Deployment mode | `dual-role` |
 | `namespace` | Kubernetes namespace | `dev` |
+| `jmx.enabled` | Enable JMX monitoring | `false` |
 | `kafka.clusterName` | Kafka cluster name | `kraft-cluster` |
 | `kafka.version` | Kafka version | `4.0.0` |
 | `kafka.replication.*` | Replication factors | Automatic |

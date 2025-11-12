@@ -52,6 +52,28 @@
 
 ---
 
+## JMX Мониторинг
+
+### `jmx.enabled`
+- **Тип**: bool
+- **По умолчанию**: `false`
+- **Описание**: Включить JMX Prometheus Exporter для экспорта метрик Kafka
+
+При включении JMX создаётся ConfigMap с правилами экспорта метрик, включая:
+- Метрики брокеров (throughput, latency, partition stats)
+- Метрики consumer/producer групп
+- Метрики топиков
+- JVM метрики (memory, GC, threads)
+- Операционные метрики
+
+Пример использования:
+```yaml
+jmx:
+  enabled: true
+```
+
+---
+
 ## Конфигурация Kafka
 
 ### `kafka.clusterName`
@@ -272,6 +294,13 @@ helm install kafka-test ./kafka-cluster \
   -n test --create-namespace
 ```
 
+### Kafka с JMX мониторингом
+```bash
+helm install kafka-monitoring ./kafka-cluster \
+  -f values-jmx.yaml \
+  -n monitoring --create-namespace
+```
+
 ### Переопределение отдельных параметров
 ```bash
 # Изменить режим развертывания
@@ -293,6 +322,11 @@ helm install kafka ./kafka-cluster \
 helm install kafka ./kafka-cluster \
   --set ingress.enabled=true \
   --set ingress.hosts[0].host=kafka.example.com \
+  -n dev --create-namespace
+
+# Включить JMX мониторинг
+helm install kafka ./kafka-cluster \
+  --set jmx.enabled=true \
   -n dev --create-namespace
 ```
 

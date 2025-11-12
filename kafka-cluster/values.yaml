@@ -7,6 +7,10 @@ namespace: dev
 # single-node: одна нода для разработки/тестирования
 deploymentMode: dual-role
 
+# JMX Prometheus Exporter для мониторинга
+jmx:
+  enabled: false  # Включить JMX метрики для Prometheus
+
 # Kafka конфигурация
 kafka:
   clusterName: kraft-cluster

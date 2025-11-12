@@ -17,6 +17,14 @@ spec:
     {{- if .Values.kafka.metadataVersion }}
     metadataVersion: {{ .Values.kafka.metadataVersion | quote }}
     {{- end }}
+{{- if .Values.jmx.enabled }}
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: {{ $clusterName }}-metrics-config
+          key: kafka-metrics-config.yml
+{{- end }}
     config:
       # Автоматически вычисляемые значения репликации
       offsets.topic.replication.factor: {{ $replicationFactor }}
