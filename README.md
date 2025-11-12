@@ -11,6 +11,7 @@ Helm-чарт для развертывания кластера Kafka (KRaft) �
 ## Возможности
 - Поддержка `KRaft` и `KafkaNodePool`
 - Опциональные `NodePort` и `Ingress`
+- JMX мониторинг через Prometheus Exporter
 - Управление параметрами через `values.yaml`
 - Подсказки установки в `templates/NOTES.txt`
 
@@ -70,6 +71,7 @@ kubectl get svc -n kafka kraft-cluster-kafka-brokers
 - `kafka-cluster/values-dual-role.yaml` — для staging окружений
 - `kafka-cluster/values-separated-persistent.yaml` — для production с persistent storage
 - `kafka-cluster/values-separated-ephemeral.yaml` — для тестирования с ephemeral storage
+- `kafka-cluster/values-jmx.yaml` — с включенным JMX мониторингом
 
 ### Основные параметры
 
@@ -77,6 +79,7 @@ kubectl get svc -n kafka kraft-cluster-kafka-brokers
 |----------|----------|-----------------------|
 | `deploymentMode` | Режим развертывания | `dual-role` |
 | `namespace` | Kubernetes namespace | `dev` |
+| `jmx.enabled` | Включить JMX мониторинг | `false` |
 | `kafka.clusterName` | Имя Kafka кластера | `kraft-cluster` |
 | `kafka.version` | Версия Kafka | `4.0.0` |
 | `kafka.replication.*` | Факторы репликации | Автоматически |
