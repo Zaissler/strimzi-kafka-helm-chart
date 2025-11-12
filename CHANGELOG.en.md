@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-11-12
+
+### ✨ Added
+- **JMX Monitoring**: Support for JMX Prometheus Exporter for Kafka metrics export
+  - Broker metrics (throughput, latency, partition stats)
+  - Consumer/producer group metrics
+  - Topic metrics
+  - JVM metrics (memory, GC, threads)
+  - Operational metrics
+- **New Profile**: `values-jmx.yaml` with JMX monitoring enabled
+- **Metrics ConfigMap**: `metrics-configmap.yaml` with detailed export rules
+- **Parameter `jmx.enabled`**: Control for enabling/disabling JMX
+
+### 🔧 Changed
+- **kafka-kraft.yaml**: Added `metricsConfig` section with conditional loading
+- **values.yaml**: Added `jmx` section (disabled by default)
+
+### 📚 Documentation
+- Updated `VALUES_REFERENCE.md` and `VALUES_REFERENCE.en.md` with JMX information
+- Updated `README.md` and `README.en.md` with new features information
+- Added JMX usage examples
+
 ## [0.2.0] - 2025-10-20
 
 ### ✨ Added
